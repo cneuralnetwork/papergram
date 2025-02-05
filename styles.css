@@ -1,16 +1,21 @@
 :root {
-    --bg-color: #0a0b14;
+    --bg-color: #0c0e17;
     --card-bg: rgba(22, 24, 37, 0.9);
     --text-color: #e2e8f0;
     --accent-color: #64ffda;
     --secondary-text: #94a3b8;
 }
 
+/* hide scrollbar */
+::-webkit-scrollbar {
+    display: none;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Grotesk', monospace;
 }
 
 body {
@@ -59,7 +64,8 @@ body {
 }
 
 .paper-card {
-    height: calc(100vh - 60px);
+    margin: auto;
+    min-height: calc(100vh - 100px);
     scroll-snap-align: start;
     display: flex;
     flex-direction: column;
@@ -70,16 +76,17 @@ body {
 }
 
 .paper-content {
-    background: var(--card-bg);
+    margin: auto;
+    margin-top: 2rem;
+      background: var(--card-bg);
     padding: 1.25rem;
     border-radius: 12px;
     border: 1px solid rgba(100, 255, 218, 0.1);
     width: calc(100% - 2rem);
-    max-width: 800px;
-    margin: 0 1rem;
+
+    max-width: 600px;
     backdrop-filter: blur(10px);
     opacity: 0;
-    transform: translateY(20px);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -92,6 +99,7 @@ body {
 
 .title {
     font-size: 1rem;
+    font-family: "Playfair Display", serif;
     color: var(--accent-color);
     margin-bottom: 0.75rem;
     line-height: 1.4;
@@ -101,6 +109,7 @@ body {
     font-size: 0.875rem;
     color: var(--secondary-text);
     margin-bottom: 1rem;
+    font-family: "Space Mono", monospace;
 }
 
 .abstract {
@@ -108,7 +117,7 @@ body {
     line-height: 1.6;
     color: var(--text-color);
     margin-bottom: 1.5rem;
-    overflow-wrap: break-word;
+    overflow-y: scroll;
     word-wrap: break-word;
 }
 
@@ -241,6 +250,9 @@ body {
         width: 28px;
         height: 28px;
         font-size: 0.75rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
     .favorites-panel {
@@ -352,6 +364,7 @@ body {
     padding: 0.75rem;
     background: rgba(100, 255, 218, 0.05);
     border-radius: 8px;
+    font-family: "Space Mono", monospace;
     border-left: 3px solid var(--accent-color);
 }
 

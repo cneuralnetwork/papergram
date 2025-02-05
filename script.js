@@ -256,7 +256,8 @@ const container = document.getElementById('container');
                         </div>
                         <div class="paper-header">
                             <h2 class="title">${paper.title}</h2>
-                            <div class="authors">${paper.authors}</div>
+<div class="authors">${paper.authors.split(', ').length > 4 ? paper.authors.split(', ').slice(0, 4).join(', ') + ', et al.' : paper.authors}</div>
+
                         </div>
                         <div class="key-results">
                             ${keyResults.map(result => `
@@ -266,7 +267,7 @@ const container = document.getElementById('container');
                                 </div>
                             `).join('')}
                         </div>
-                        <p class="abstract">${paper.abstract}</p>
+                        <p class="abstract">${paper.abstract.length > 400 ? paper.abstract.substring(0, 400) + '...' : paper.abstract}</p>
                         <div class="metadata">
                             <span>${paper.published}</span>
                             <button class="like-button ${isLiked ? 'liked' : ''}">${isLiked ? '❤️' : '🤍'}</button>
