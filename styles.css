@@ -65,6 +65,8 @@ body {
 
 .paper-card {
     margin: auto;
+    content-visibility: auto;
+    contain-intrinsic-size: 1000px;
     min-height: calc(100vh - 100px);
     scroll-snap-align: start;
     display: flex;
