@@ -37,19 +37,19 @@ Try it out: [Paper Gram](https://papergram.netlify.app/)
 ## 📦 Installation
 
 1. Clone the repository:
-```bash
-git https://github.com/cneuralnetwork/papergram.git
-```
+  ```bash
+  git clone https://github.com/cneuralnetwork/papergram.git
+  ```
 
 2. Navigate to the project directory:
-```bash
-cd papergram
-```
+  ```bash
+  cd papergram
+  ```
 
 3. Open `index.html` in your browser or use a local server:
-```bash
-python -m http.server 8000
-```
+  ```bash
+  python -m http.server 8000
+  ```
 
 ## 🚀 Usage
 
@@ -64,8 +64,9 @@ python -m http.server 8000
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👏 Credits
 
