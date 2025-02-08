@@ -1,4 +1,4 @@
-# Paper Gram 📚
+# 📚 Paper Gram
 
 A modern, beautiful interface for discovering and managing academic research papers in AI, Machine Learning, and related fields.
 
