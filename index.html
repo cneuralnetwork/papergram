@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paper Gram</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-        rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
+    <nav>
+        <button id="darkModeToggle">Toggle Dark Mode</button>
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search papers...">
+            <button type="submit">Search</button>
+        </form>
+        <div class="category-filters">
+            <button class="category-filter" data-category="cs.AI">AI</button>
+            <button class="category-filter" data-category="cs.LG">Machine Learning</button>
+            <button class="category-filter" data-category="cs.CL">Computational Linguistics</button>
+            <button class="category-filter" data-category="cs.CV">Computer Vision</button>
+        </div>
+    </nav>
+
     <button class="favorites-btn" id="favoritesToggle">
         Favorites
     </button>
@@ -37,5 +46,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>

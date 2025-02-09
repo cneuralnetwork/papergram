@@ -1,392 +1,502 @@
-const container = document.getElementById('container');
-const favoritesPanel = document.getElementById('favoritesPanel');
-const favoritesList = document.getElementById('favoritesList');
-const favoritesToggle = document.getElementById('favoritesToggle');
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.getElementById("container")
+  const favoritesPanel = document.getElementById("favoritesPanel")
+  const favoritesList = document.getElementById("favoritesList")
+  const favoritesToggle = document.getElementById("favoritesToggle")
+  const darkModeToggle = document.getElementById("darkModeToggle")
+  const searchForm = document.getElementById("searchForm")
+  const searchInput = document.getElementById("searchInput")
 
-let currentIndex = 0;
-let papers = [];
-let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-let startIndex = 0;
-let isLoading = false;
+  let currentIndex = 0
+  let papers = []
+  const favorites = JSON.parse(localStorage.getItem("favorites") || "[]")
+  let startIndex = 0
+  let isLoading = false
 
-favoritesToggle.addEventListener('click', () => {
-    favoritesPanel.classList.toggle('show');
-});
+  if (favoritesToggle) {
+    favoritesToggle.addEventListener("click", () => {
+      favoritesPanel.classList.toggle("show")
+    })
+  }
 
-function updateFavoritesList() {
-    favoritesList.innerHTML = '';
-    favorites.forEach((paper) => {
-        const item = document.createElement('div');
-        item.className = 'favorite-item';
+  function updateFavoritesList() {
+    if (favoritesList) {
+      favoritesList.innerHTML = ""
+      favorites.forEach((paper) => {
+        const item = document.createElement("div")
+        item.className = "favorite-item"
         item.innerHTML = `
                     <div style="font-weight: 600; margin-bottom: 0.25rem;">${paper.title}</div>
                     <div style="font-size: 0.8rem; color: var(--secondary-text);">${paper.authors}</div>
-                `;
-        item.addEventListener('click', () => {
-            window.open(paper.link, '_blank');
-        });
-        favoritesList.appendChild(item);
-    });
-}
+                `
+        item.addEventListener("click", () => {
+          window.open(paper.link, "_blank")
+        })
+        favoritesList.appendChild(item)
+      })
+    }
+  }
 
-function toggleFavorite(paper, button) {
-    const index = favorites.findIndex(f => f.title === paper.title);
+  function toggleFavorite(paper, button) {
+    const index = favorites.findIndex((f) => f.title === paper.title)
 
     if (index === -1) {
-        favorites.push(paper);
-        button.classList.add('liked');
-        button.textContent = '❤️';
+      favorites.push(paper)
+      button.classList.add("liked")
+      button.textContent = "❤️"
     } else {
-        favorites.splice(index, 1);
-        button.classList.remove('liked');
-        button.textContent = '🤍';
+      favorites.splice(index, 1)
+      button.classList.remove("liked")
+      button.textContent = "🤍"
     }
 
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-    updateFavoritesList();
-}
+    localStorage.setItem("favorites", JSON.stringify(favorites))
+    updateFavoritesList()
+  }
 
-async function fetchPapers(start = 0) {
-    if (isLoading) return;
-    isLoading = true;
+  async function fetchPapers(
+    start = 0,
+    searchQuery = "cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.CV+OR+cat:stat.ML",
+  ) {
+    if (isLoading) return
+    isLoading = true
 
     try {
-        const query = 'cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.CV+OR+cat:stat.ML';
-        const response = await fetch(
-            `https://export.arxiv.org/api/query?search_query=${query}&start=${start}&max_results=10&sortBy=submittedDate&sortOrder=descending`
-        );
-        const text = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(text, 'text/xml');
-        const entries = xmlDoc.getElementsByTagName('entry');
+      const response = await fetch(
+        `https://export.arxiv.org/api/query?search_query=${searchQuery}&start=${start}&max_results=10&sortBy=submittedDate&sortOrder=descending`,
+      )
+      const text = await response.text()
+      const parser = new DOMParser()
+      const xmlDoc = parser.parseFromString(text, "text/xml")
+      const entries = xmlDoc.getElementsByTagName("entry")
 
-        const newPapers = Array.from(entries).map(entry => ({
-            title: entry.getElementsByTagName('title')[0].textContent,
-            authors: Array.from(entry.getElementsByTagName('author'))
-                .map(author => author.getElementsByTagName('name')[0].textContent)
-                .join(', '),
-            abstract: entry.getElementsByTagName('summary')[0].textContent,
-            published: new Date(entry.getElementsByTagName('published')[0].textContent)
-                .toLocaleDateString(),
-            link: entry.getElementsByTagName('id')[0].textContent
-        }));
+      const newPapers = Array.from(entries).map((entry) => ({
+        title: entry.getElementsByTagName("title")[0].textContent,
+        authors: Array.from(entry.getElementsByTagName("author"))
+          .map((author) => author.getElementsByTagName("name")[0].textContent)
+          .join(", "),
+        abstract: entry.getElementsByTagName("summary")[0].textContent,
+        published: new Date(entry.getElementsByTagName("published")[0].textContent).toLocaleDateString(),
+        link: entry.getElementsByTagName("id")[0].textContent,
+        categories:
+          entry.getElementsByTagName("category").length > 0
+            ? Array.from(entry.getElementsByTagName("category")).map((category) => category.getAttribute("term"))
+            : [],
+      }))
 
-        papers = [...papers, ...newPapers];
-        startIndex += newPapers.length;
+      papers = [...papers, ...newPapers]
+      startIndex += newPapers.length
 
-        renderPapers();
-        updateFavoritesList();
+      renderPapers()
+      updateFavoritesList()
     } catch (error) {
-        console.error('Error fetching papers:', error);
+      console.error("Error fetching papers:", error)
     } finally {
-        isLoading = false;
+      isLoading = false
     }
-}
+  }
 
-function renderLatex(element) {
+  function renderLatex(element) {
+    // Import renderMathInElement or declare it here if it's not a global variable.  Assuming it's from a library like KaTeX.
+    // This is a placeholder; replace with your actual import or declaration.
+    const renderMathInElement = window.renderMathInElement //Example, adjust as needed
+
     renderMathInElement(element, {
-        delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '$', right: '$', display: false },
-            { left: '\\(', right: '\\)', display: false },
-            { left: '\\[', right: '\\]', display: true }
-        ],
-        throwOnError: false,
-        output: 'html'
-    });
-}
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "$$", right: "$$", display: false },
+        { left: "\\[", right: "\\]", display: true },
+      ],
+      throwOnError: false,
+      output: "html",
+    })
+  }
 
-function highlightKeywords(text) {
+  function highlightKeywords(text) {
     const keywords = [
-        'neural network', 'deep learning', 'transformer', 'attention mechanism',
-        'state-of-the-art', 'performance', 'accuracy', 'efficiency',
-        'novel', 'framework', 'architecture', 'significantly'
-    ];
+      "neural network",
+      "deep learning",
+      "transformer",
+      "attention mechanism",
+      "state-of-the-art",
+      "performance",
+      "accuracy",
+      "efficiency",
+      "novel",
+      "framework",
+      "architecture",
+      "significantly",
+    ]
 
-    let highlightedText = text;
-    keywords.forEach(keyword => {
-        const regex = new RegExp(`(${keyword})`, 'gi');
-        highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>');
-    });
-    return highlightedText;
-}
+    let highlightedText = text
+    keywords.forEach((keyword) => {
+      const regex = new RegExp(`(${keyword})`, "gi")
+      highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>')
+    })
+    return highlightedText
+  }
 
-function boldHighlightText(text) {
+  function boldHighlightText(text) {
     const importantPhrases = [
-        'outperforms', 'state-of-the-art', 'novel', 'breakthrough',
-        'significant improvement', 'better than', 'achieves',
-        'first time', 'innovative', 'superior', 'advancement',
-        'key findings', 'main contributions', 'results show'
-    ];
+      "outperforms",
+      "state-of-the-art",
+      "novel",
+      "breakthrough",
+      "significant improvement",
+      "better than",
+      "achieves",
+      "first time",
+      "innovative",
+      "superior",
+      "advancement",
+      "key findings",
+      "main contributions",
+      "results show",
+    ]
 
-    let highlightedText = text;
-    importantPhrases.forEach(phrase => {
-        const regex = new RegExp(`(${phrase})`, 'gi');
-        highlightedText = highlightedText.replace(regex, '<span class="bold-highlight">$1</span>');
-    });
-    return highlightedText;
-}
+    let highlightedText = text
+    importantPhrases.forEach((phrase) => {
+      const regex = new RegExp(`(${phrase})`, "gi")
+      highlightedText = highlightedText.replace(regex, '<span class="bold-highlight">$1</span>')
+    })
+    return highlightedText
+  }
 
-function generateDiagram(paper) {
-    const abstract = paper.abstract.toLowerCase();
-    let diagramType = null;
+  function generateDiagram(paper) {
+    const abstract = paper.abstract.toLowerCase()
+    let diagramType = null
 
-    if (abstract.includes('neural network') || abstract.includes('deep learning')) {
-        diagramType = 'network';
-    } else if (abstract.includes('transformer') || abstract.includes('attention')) {
-        diagramType = 'transformer';
-    } else if (abstract.includes('algorithm') || abstract.includes('pipeline')) {
-        diagramType = 'flowchart';
+    if (abstract.includes("neural network") || abstract.includes("deep learning")) {
+      diagramType = "network"
+    } else if (abstract.includes("transformer") || abstract.includes("attention")) {
+      diagramType = "transformer"
+    } else if (abstract.includes("algorithm") || abstract.includes("pipeline")) {
+      diagramType = "flowchart"
     }
 
-    return diagramType ? getDiagramSVG(diagramType) : '';
-}
+    return diagramType ? getDiagramSVG(diagramType) : ""
+  }
 
-function getDiagramSVG(type) {
+  function getDiagramSVG(type) {
     const diagrams = {
-        network: `
-                    <div class="diagram-container">
-                        <svg viewBox="0 0 200 100">
-                            <circle cx="30" cy="30" r="5" fill="#64ffda"/>
-                            <circle cx="30" cy="70" r="5" fill="#64ffda"/>
-                            <circle cx="100" cy="20" r="5" fill="#64ffda"/>
-                            <circle cx="100" cy="50" r="5" fill="#64ffda"/>
-                            <circle cx="100" cy="80" r="5" fill="#64ffda"/>
-                            <circle cx="170" cy="50" r="5" fill="#64ffda"/>
-                            <!-- Connections -->
-                            <path d="M30,30 C60,30 70,20 100,20" stroke="#64ffda" fill="none"/>
-                            <path d="M30,30 C60,30 70,50 100,50" stroke="#64ffda" fill="none"/>
-                            <path d="M30,70 C60,70 70,50 100,50" stroke="#64ffda" fill="none"/>
-                            <path d="M30,70 C60,70 70,80 100,80" stroke="#64ffda" fill="none"/>
-                            <path d="M100,20 C130,20 140,50 170,50" stroke="#64ffda" fill="none"/>
-                            <path d="M100,50 C130,50 140,50 170,50" stroke="#64ffda" fill="none"/>
-                            <path d="M100,80 C130,80 140,50 170,50" stroke="#64ffda" fill="none"/>
-                        </svg>
-                        <div class="media-caption">Neural Network Architecture</div>
-                    </div>
-                `,
-        transformer: `
-                    <div class="diagram-container">
-                        <svg viewBox="0 0 200 120">
-                            <rect x="40" y="20" width="40" height="80" fill="none" stroke="#64ffda" rx="4"/>
-                            <rect x="120" y="20" width="40" height="80" fill="none" stroke="#64ffda" rx="4"/>
-                            <path d="M80,60 C90,60 110,60 120,60" stroke="#64ffda" fill="none" marker-end="url(#arrow)"/>
-                            <text x="100" y="55" fill="#64ffda" text-anchor="middle" font-size="8">Attention</text>
-                            <text x="60" y="70" fill="#64ffda" text-anchor="middle" font-size="8">Encoder</text>
-                            <text x="140" y="70" fill="#64ffda" text-anchor="middle" font-size="8">Decoder</text>
-                        </svg>
-                        <div class="media-caption">Transformer Architecture</div>
-                    </div>
-                `,
-        flowchart: `
-                    <div class="diagram-container">
-                        <svg viewBox="0 0 200 120">
-                            <rect x="60" y="10" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
-                            <rect x="60" y="50" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
-                            <rect x="60" y="90" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
-                            <line x1="100" y1="35" x2="100" y2="50" stroke="#64ffda" stroke-width="2" marker-end="url(#arrow)"/>
-                            <line x1="100" y1="75" x2="100" y2="90" stroke="#64ffda" stroke-width="2" marker-end="url(#arrow)"/>
-                        </svg>
-                        <div class="media-caption">Algorithm Pipeline</div>
-                    </div>
-                `
-    };
-    return diagrams[type] || '';
-}
+      network: `
+                        <div class="diagram-container">
+                            <svg viewBox="0 0 200 100">
+                                <circle cx="30" cy="30" r="5" fill="#64ffda"/>
+                                <circle cx="30" cy="70" r="5" fill="#64ffda"/>
+                                <circle cx="100" cy="20" r="5" fill="#64ffda"/>
+                                <circle cx="100" cy="50" r="5" fill="#64ffda"/>
+                                <circle cx="100" cy="80" r="5" fill="#64ffda"/>
+                                <circle cx="170" cy="50" r="5" fill="#64ffda"/>
+                                <!-- Connections -->
+                                <path d="M30,30 C60,30 70,20 100,20" stroke="#64ffda" fill="none"/>
+                                <path d="M30,30 C60,30 70,50 100,50" stroke="#64ffda" fill="none"/>
+                                <path d="M30,70 C60,70 70,50 100,50" stroke="#64ffda" fill="none"/>
+                                <path d="M30,70 C60,70 70,80 100,80" stroke="#64ffda" fill="none"/>
+                                <path d="M100,20 C130,20 140,50 170,50" stroke="#64ffda" fill="none"/>
+                                <path d="M100,50 C130,50 140,50 170,50" stroke="#64ffda" fill="none"/>
+                                <path d="M100,80 C130,80 140,50 170,50" stroke="#64ffda" fill="none"/>
+                            </svg>
+                            <div class="media-caption">Neural Network Architecture</div>
+                        </div>
+                    `,
+      transformer: `
+                        <div class="diagram-container">
+                            <svg viewBox="0 0 200 120">
+                                <rect x="40" y="20" width="40" height="80" fill="none" stroke="#64ffda" rx="4"/>
+                                <rect x="120" y="20" width="40" height="80" fill="none" stroke="#64ffda" rx="4"/>
+                                <path d="M80,60 C90,60 110,60 120,60" stroke="#64ffda" fill="none" marker-end="url(#arrow)"/>
+                                <text x="100" y="55" fill="#64ffda" text-anchor="middle" font-size="8">Attention</text>
+                                <text x="60" y="70" fill="#64ffda" text-anchor="middle" font-size="8">Encoder</text>
+                                <text x="140" y="70" fill="#64ffda" text-anchor="middle" font-size="8">Decoder</text>
+                            </svg>
+                            <div class="media-caption">Transformer Architecture</div>
+                        </div>
+                    `,
+      flowchart: `
+                        <div class="diagram-container">
+                            <svg viewBox="0 0 200 120">
+                                <rect x="60" y="10" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
+                                <rect x="60" y="50" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
+                                <rect x="60" y="90" width="80" height="25" rx="5" fill="none" stroke="#64ffda"/>
+                                <line x1="100" y1="35" x2="100" y2="50" stroke="#64ffda" stroke-width="2" marker-end="url(#arrow)"/>
+                                <line x1="100" y1="75" x2="100" y2="90" stroke="#64ffda" stroke-width="2" marker-end="url(#arrow)"/>
+                            </svg>
+                            <div class="media-caption">Algorithm Pipeline</div>
+                        </div>
+                    `,
+    }
+    return diagrams[type] || ""
+  }
 
-function showToast(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
-    document.body.appendChild(toast);
+  function showToast(message) {
+    const toast = document.createElement("div")
+    toast.className = "toast"
+    toast.textContent = message
+    document.body.appendChild(toast)
 
-    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => toast.classList.add("show"), 100)
     setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
-}
+      toast.classList.remove("show")
+      setTimeout(() => toast.remove(), 300)
+    }, 2000)
+  }
 
-function sharePaper(platform, paper) {
-    const title = paper.title;
-    const url = paper.link;
+  function sharePaper(platform, paper) {
+    const title = paper.title
+    const url = paper.link
 
     switch (platform) {
-        case 'twitter':
-            window.open(
-                `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-                '_blank'
-            );
-            break;
-        case 'linkedin':
-            window.open(
-                `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-                '_blank'
-            );
-            break;
-        case 'copy':
-            navigator.clipboard.writeText(`${title}\n${url}`);
-            showToast('Link copied to clipboard!');
-            break;
+      case "twitter":
+        window.open(
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
+          "_blank",
+        )
+        break
+      case "linkedin":
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank")
+        break
+      case "copy":
+        navigator.clipboard.writeText(`${title}\n${url}`)
+        showToast("Link copied to clipboard!")
+        break
     }
-}
+  }
 
-function renderPapers() {
-    container.innerHTML = '';
-    papers.forEach((paper, index) => {
-        const paperCard = document.createElement('div');
-        paperCard.className = 'paper-card';
-        if (index === currentIndex) paperCard.classList.add('active');
+  function renderPapers(papersToRender = papers) {
+    container.innerHTML = ""
+    papersToRender.forEach((paper, index) => {
+      const paperCard = document.createElement("div")
+      paperCard.className = "paper-card"
+      if (index === currentIndex) paperCard.classList.add("active")
 
-        const isLiked = favorites.some(f => f.title === paper.title);
-        const keyResults = extractKeyResults(paper.abstract);
+      const isLiked = favorites.some((f) => f.title === paper.title)
+      const keyResults = extractKeyResults(paper.abstract)
 
-        paperCard.innerHTML = `
-                    <div class="paper-content">
-                        <div class="share-container">
-                            <button class="share-btn twitter-share" title="Share on Twitter">
-                                <i class="fab fa-twitter"></i>
-                            </button>
-                            <button class="share-btn linkedin-share" title="Share on LinkedIn">
-                                <i class="fab fa-linkedin-in"></i>
-                            </button>
-                            <button class="share-btn copy-link" title="Copy Link">
-                                <i class="fas fa-link"></i>
-                            </button>
+      paperCard.innerHTML = `
+                        <div class="paper-content">
+                            <div class="share-container">
+                                <button class="share-btn twitter-share" title="Share on Twitter">
+                                    <i class="fab fa-twitter"></i>
+                                </button>
+                                <button class="share-btn linkedin-share" title="Share on LinkedIn">
+                                    <i class="fab fa-linkedin-in"></i>
+                                </button>
+                                <button class="share-btn copy-link" title="Copy Link">
+                                    <i class="fas fa-link"></i>
+                                </button>
+                            </div>
+                            <div class="paper-header">
+                                <h2 class="title">${paper.title}</h2>
+                                <div class="authors">${paper.authors.split(", ").length > 4 ? paper.authors.split(", ").slice(0, 4).join(", ") + ", et al." : paper.authors}</div>
+                            </div>
+                            <div class="key-results">
+                                ${keyResults
+                                  .map(
+                                    (result) => `
+                                    <div class="result-item">
+                                        <span class="result-icon">🔍</span>
+                                        <span>${result}</span>
+                                    </div>
+                                `,
+                                  )
+                                  .join("")}
+                            </div>
+                            <p class="abstract">${paper.abstract.length > 400 ? paper.abstract.substring(0, 400) + "..." : paper.abstract}</p>
+                            <div class="metadata">
+                                <span>${paper.published}</span>
+                                <button class="like-button ${isLiked ? "liked" : ""}">${isLiked ? "❤️" : "🤍"}</button>
+                                <a href="${paper.link}" target="_blank" class="read-more">Read More</a>
+                            </div>
                         </div>
-                        <div class="paper-header">
-                            <h2 class="title">${paper.title}</h2>
-<div class="authors">${paper.authors.split(', ').length > 4 ? paper.authors.split(', ').slice(0, 4).join(', ') + ', et al.' : paper.authors}</div>
+                    `
 
-                        </div>
-                        <div class="key-results">
-                            ${keyResults.map(result => `
-                                <div class="result-item">
-                                    <span class="result-icon">🔍</span>
-                                    <span>${result}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <p class="abstract">${paper.abstract.length > 400 ? paper.abstract.substring(0, 400) + '...' : paper.abstract}</p>
-                        <div class="metadata">
-                            <span>${paper.published}</span>
-                            <button class="like-button ${isLiked ? 'liked' : ''}">${isLiked ? '❤️' : '🤍'}</button>
-                            <a href="${paper.link}" target="_blank" class="read-more">Read More</a>
-                        </div>
-                    </div>
-                `;
+      const twitterBtn = paperCard.querySelector(".twitter-share")
+      const linkedinBtn = paperCard.querySelector(".linkedin-share")
+      const copyBtn = paperCard.querySelector(".copy-link")
+      const likeButton = paperCard.querySelector(".like-button")
 
-        const twitterBtn = paperCard.querySelector('.twitter-share');
-        const linkedinBtn = paperCard.querySelector('.linkedin-share');
-        const copyBtn = paperCard.querySelector('.copy-link');
-        const likeButton = paperCard.querySelector('.like-button');
+      twitterBtn.addEventListener("click", () => sharePaper("twitter", paper))
+      linkedinBtn.addEventListener("click", () => sharePaper("linkedin", paper))
+      copyBtn.addEventListener("click", () => sharePaper("copy", paper))
+      likeButton.addEventListener("click", () => toggleFavorite(paper, likeButton))
 
-        twitterBtn.addEventListener('click', () => sharePaper('twitter', paper));
-        linkedinBtn.addEventListener('click', () => sharePaper('linkedin', paper));
-        copyBtn.addEventListener('click', () => sharePaper('copy', paper));
-        likeButton.addEventListener('click', () => toggleFavorite(paper, likeButton));
+      container.appendChild(paperCard)
+      renderLatex(paperCard)
+    })
+  }
 
-        container.appendChild(paperCard);
-        renderLatex(paperCard);
-    });
-}
-
-function extractKeyResults(abstract) {
-    const results = [];
-    const sentences = abstract.split(/[.!?]+/);
+  function extractKeyResults(abstract) {
+    const results = []
+    const sentences = abstract.split(/[.!?]+/)
 
     const keyPhrases = [
-        'propose', 'present', 'introduce',
-        'achieve', 'show', 'demonstrate',
-        'improve', 'outperform', 'better',
-        'novel', 'new', 'first'
-    ];
+      "propose",
+      "present",
+      "introduce",
+      "achieve",
+      "show",
+      "demonstrate",
+      "improve",
+      "outperform",
+      "better",
+      "novel",
+      "new",
+      "first",
+    ]
 
-    sentences.forEach(sentence => {
-        if (results.length < 3 &&
-            keyPhrases.some(phrase => sentence.toLowerCase().includes(phrase))) {
-            results.push(sentence.trim());
-        }
-    });
+    sentences.forEach((sentence) => {
+      if (results.length < 3 && keyPhrases.some((phrase) => sentence.toLowerCase().includes(phrase))) {
+        results.push(sentence.trim())
+      }
+    })
     if (results.length === 0) {
-        results.push(sentences[0].trim());
+      results.push(sentences[0].trim())
     }
 
-    return results;
-}
+    return results
+  }
 
-function createCatchyTitle(originalTitle) {
+  function createCatchyTitle(originalTitle) {
     return originalTitle
-        .replace(/A Novel Approach to|On the|Towards|An Analysis of/gi, '')
-        .replace(/Using|Via|Through/gi, 'with')
-        .trim();
-}
+      .replace(/A Novel Approach to|On the|Towards|An Analysis of/gi, "")
+      .replace(/Using|Via|Through/gi, "with")
+      .trim()
+  }
 
-function generatePaperMedia(paper) {
-    if (paper.abstract.includes('neural network') || paper.abstract.includes('deep learning')) {
-        return `
-                    <div class="paper-media">
-                        <img src="https://via.placeholder.com/600x300/1a1b2e/64ffda?text=Neural+Network+Architecture" alt="Paper visualization">
-                        <div class="media-caption">Model Architecture Visualization</div>
-                    </div>
-                `;
+  function generatePaperMedia(paper) {
+    if (paper.abstract.includes("neural network") || paper.abstract.includes("deep learning")) {
+      return `
+                        <div class="paper-media">
+                            <img src="https://via.placeholder.com/600x300/1a1b2e/64ffda?text=Neural+Network+Architecture" alt="Paper visualization">
+                            <div class="media-caption">Model Architecture Visualization</div>
+                        </div>
+                    `
     }
-    return '';
-}
+    return ""
+  }
 
-function handleScroll() {
-    const cards = document.querySelectorAll('.paper-card');
+  function handleScroll() {
+    if (!container) return
+
+    const cards = container.querySelectorAll(".paper-card")
     cards.forEach((card, index) => {
-        const rect = card.getBoundingClientRect();
-        if (Math.abs(rect.top - 60) < window.innerHeight / 2) {
-            card.classList.add('active');
-            currentIndex = index;
-        } else {
-            card.classList.remove('active');
-        }
-    });
+      const rect = card.getBoundingClientRect()
+      if (Math.abs(rect.top - 60) < window.innerHeight / 2) {
+        card.classList.add("active")
+        currentIndex = index
+      } else {
+        card.classList.remove("active")
+      }
+    })
 
-    const lastCard = cards[cards.length - 1];
+    const lastCard = cards[cards.length - 1]
     if (lastCard) {
-        const rect = lastCard.getBoundingClientRect();
-        if (rect.bottom <= window.innerHeight * 1.5) {
-            fetchPapers(startIndex);
-        }
+      const rect = lastCard.getBoundingClientRect()
+      if (rect.bottom <= window.innerHeight * 1.5) {
+        fetchPapers(startIndex)
+      }
     }
-}
+  }
 
-function scrollToIndex(index) {
-    const cards = document.querySelectorAll('.paper-card');
-    if (index >= 0 && index < cards.length) {
-        cards[index].scrollIntoView({ behavior: 'smooth' });
-    }
-}
+  let touchStartY = 0
+  let touchEndY = 0
 
-container.addEventListener('scroll', handleScroll);
+  if (container) {
+    container.addEventListener("scroll", handleScroll)
 
-let touchStartY = 0;
-let touchEndY = 0;
+    container.addEventListener("touchstart", (e) => {
+      touchStartY = e.changedTouches[0].screenY
+    })
 
-container.addEventListener('touchstart', e => {
-    touchStartY = e.changedTouches[0].screenY;
-});
+    container.addEventListener("touchend", (e) => {
+      touchEndY = e.changedTouches[0].screenY
+      handleSwipe()
+    })
+  }
 
-container.addEventListener('touchend', e => {
-    touchEndY = e.changedTouches[0].screenY;
-    handleSwipe();
-});
-
-function handleSwipe() {
-    const swipeDistance = touchStartY - touchEndY;
-    const threshold = 50; // minimum distance for swipe
+  function handleSwipe() {
+    const swipeDistance = touchStartY - touchEndY
+    const threshold = 50 // minimum distance for swipe
 
     if (Math.abs(swipeDistance) > threshold) {
-        if (swipeDistance > 0) {
-            scrollToIndex(currentIndex + 1);
-        } else {
-            scrollToIndex(currentIndex - 1);
-        }
+      if (swipeDistance > 0) {
+        scrollToIndex(currentIndex + 1)
+      } else {
+        scrollToIndex(currentIndex - 1)
+      }
     }
-}
+  }
 
-fetchPapers();
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode")
+    localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"))
+  }
+
+  function scrollToIndex(index) {
+    const cards = document.querySelectorAll(".paper-card")
+    if (index >= 0 && index < cards.length) {
+      cards[index].scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+  async function searchPapers(query) {
+    const searchQuery = `all:${query}+AND+(cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.CV+OR+cat:stat.ML)`
+    startIndex = 0
+    papers = []
+    container.innerHTML = ""
+    await fetchPapers(0, searchQuery)
+
+    // Add search feedback
+    const feedbackElement = document.createElement("div")
+    feedbackElement.className = "search-feedback"
+    feedbackElement.textContent = `Showing results for: "${query}"`
+    container.insertBefore(feedbackElement, container.firstChild)
+  }
+
+  function filterPapers(category) {
+    const filteredPapers = papers.filter((paper) => paper.categories.includes(category))
+    renderPapers(filteredPapers)
+
+    const categoryButtons = document.querySelectorAll(".category-filter")
+    categoryButtons.forEach((button) => {
+      if (button.dataset.category === category) {
+        button.classList.add("active")
+      } else {
+        button.classList.remove("active")
+      }
+    })
+
+    const feedbackElement = document.createElement("div")
+    feedbackElement.className = "search-feedback"
+    feedbackElement.textContent = `Showing papers in category: ${category}`
+    container.insertBefore(feedbackElement, container.firstChild)
+  }
+
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener("click", toggleDarkMode)
+  }
+
+  // Check for saved dark mode preference
+  if (localStorage.getItem("darkMode") === "true") {
+    document.body.classList.add("dark-mode")
+  }
+
+  if (searchForm && searchInput) {
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      searchPapers(searchInput.value)
+    })
+  }
+
+  const categoryFilters = document.querySelectorAll(".category-filter")
+  categoryFilters.forEach((filter) => {
+    filter.addEventListener("click", () => {
+      filterPapers(filter.dataset.category)
+    })
+  })
+
+  fetchPapers()
+})
+
